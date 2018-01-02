@@ -1,0 +1,44 @@
+---
+- name: Kafka Base AMI Setup - Centos7
+  hosts: all
+  remote_user: root
+  connection: local
+  gather_facts: true
+  tasks:
+
+  ## Dependencies
+  - name: Installing dependencies
+    yum:
+      name: "{{ item }}"
+      state: present
+    with_items:
+      - unzip
+      - java-1.8.0-openjdk.x86_64
+    become: true
+
+  - name: Setting Java ENV vars
+    shell: |
+     PROFILE=/etc/profile
+     echo "export JAVA_HOME=/usr/lib/jvm/jre-1.8.0-openjdk" >> $PROFILE
+     echo "export JRE_HOME=/usr/lib/jvm/jre" >> $PROFILE
+     source /etc/profile
+    become: true
+
+  ## Kafka
+  - name: Downloading Kafka
+    get_url:
+      url: http://mirror.stjschools.org/public/apache/kafka/1.0.0/kafka_2.12-1.0.0.tgz
+      dest: /tmp/kafka_2.12-1.0.0.tgz
+
+  - name: Unzip Kafka into opt
+    unarchive:
+      src: /tmp/kafka_2.12-1.0.0.tgz
+      dest: /opt/
+    become: true
+
+  - name: Adjusting Memory for Kafka to lower (for smaller machines)
+    shell: |
+      # Default
+      # export KAFKA_HEAP_OPTS="-Xmx1G -Xms1G"
+      echo 'export KAFKA_HEAP_OPTS="-Xmx256M -Xms128M"' >> /etc/profile
+    become: true
