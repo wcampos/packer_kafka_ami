@@ -1,5 +1,5 @@
 ---
-- name: Kafka Base AMI Setup - Centos7
+- name: Kafka Base AMI Setup - Amazon Linux 2023
   hosts: all
   remote_user: root
   connection: local
@@ -8,37 +8,50 @@
 
   ## Dependencies
   - name: Installing dependencies
-    yum:
+    dnf:
       name: "{{ item }}"
       state: present
     with_items:
       - unzip
-      - java-1.8.0-openjdk.x86_64
+      - java-17-amazon-corretto
     become: true
 
   - name: Setting Java ENV vars
     shell: |
      PROFILE=/etc/profile
-     echo "export JAVA_HOME=/usr/lib/jvm/jre-1.8.0-openjdk" >> $PROFILE
-     echo "export JRE_HOME=/usr/lib/jvm/jre" >> $PROFILE
+     echo "export JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto" >> $PROFILE
+     echo "export JRE_HOME=/usr/lib/jvm/java-17-amazon-corretto-jre" >> $PROFILE
      source /etc/profile
     become: true
 
   ## Kafka
+  - name: Create Kafka directory
+    file:
+      path: /opt/kafka
+      state: directory
+      mode: '0755'
+    become: true
+
   - name: Downloading Kafka
     get_url:
-      url: http://mirror.stjschools.org/public/apache/kafka/1.0.0/kafka_2.12-1.0.0.tgz
-      dest: /tmp/kafka_2.12-1.0.0.tgz
+      url: https://downloads.apache.org/kafka/3.9.0/kafka_2.13-3.9.0.tgz
+      dest: /tmp/kafka.tgz
+      mode: '0644'
 
   - name: Unzip Kafka into opt
     unarchive:
-      src: /tmp/kafka_2.12-1.0.0.tgz
-      dest: /opt/
+      src: /tmp/kafka.tgz
+      dest: /opt/kafka
+      remote_src: yes
+      extra_opts: [--strip-components=1]
     become: true
 
-  - name: Adjusting Memory for Kafka to lower (for smaller machines)
+  - name: Adjusting Memory for Kafka
     shell: |
-      # Default
-      # export KAFKA_HEAP_OPTS="-Xmx1G -Xms1G"
-      echo 'export KAFKA_HEAP_OPTS="-Xmx256M -Xms128M"' >> /etc/profile
+      echo 'export KAFKA_HEAP_OPTS="-Xmx512M -Xms256M"' >> /etc/profile
     become: true
+
+  - name: Clean up downloaded files
+    file:
+      path: /tmp/kafka.tgz
+      state: absent
