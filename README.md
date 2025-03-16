@@ -60,3 +60,7 @@ make docker-clean
 ## Notes
 
 This Packer configuration creates a base AMI with Kafka dependencies installed. The actual Kafka and Zookeeper configuration should be done during instance deployment (e.g., using Terraform).
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
