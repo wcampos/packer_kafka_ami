@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  kafka-ami-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kafka-ami-test
+    volumes:
+      - ./RemoteFiles:/ansible/RemoteFiles
+    environment:
+      - ANSIBLE_HOST_KEY_CHECKING=false
+    tty: true 
