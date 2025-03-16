@@ -1,0 +1,41 @@
+name: Test Ansible Playbook
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'RemoteFiles/**'
+      - '.github/workflows/test-ansible.yml'
+      - 'Dockerfile'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'RemoteFiles/**'
+      - '.github/workflows/test-ansible.yml'
+      - 'Dockerfile'
+
+jobs:
+  test-ansible:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+
+      - name: Set up Docker Compose
+        uses: ndeloof/install-compose-action@v0.0.1
+        with:
+          version: v2.24.5
+          legacy: false
+
+      - name: Build and test
+        run: |
+          make docker-build
+          make docker-test
+
+      - name: Clean up
+        if: always()
+        run: make docker-clean 

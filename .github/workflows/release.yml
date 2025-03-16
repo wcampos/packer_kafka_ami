@@ -1,0 +1,47 @@
+name: Create Release
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'LICENSE'
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate timestamp
+        id: timestamp
+        run: echo "timestamp=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_OUTPUT
+
+      - name: Create release files
+        run: |
+          zip -r kafka-ami-${{ steps.timestamp.outputs.timestamp }}.zip \
+            RemoteFiles/ \
+            *.pkr.hcl \
+            Dockerfile \
+            docker-compose.yml \
+            Makefile \
+            LICENSE \
+            README.md
+
+      - name: Create Tag
+        run: |
+          git tag v${{ steps.timestamp.outputs.timestamp }}
+          git push origin v${{ steps.timestamp.outputs.timestamp }}
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.timestamp.outputs.timestamp }}
+          name: Release v${{ steps.timestamp.outputs.timestamp }}
+          files: kafka-ami-${{ steps.timestamp.outputs.timestamp }}.zip
+          generate_release_notes: true 

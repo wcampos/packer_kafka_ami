@@ -1,0 +1,40 @@
+name: Test Packer Configuration
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - '*.pkr.hcl'
+      - '.github/workflows/test-packer.yml'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - '*.pkr.hcl'
+      - '.github/workflows/test-packer.yml'
+
+env:
+  PACKER_VERSION: 1.9.4
+
+jobs:
+  validate-packer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Packer
+        uses: hashicorp/setup-packer@main
+        with:
+          version: ${{ env.PACKER_VERSION }}
+
+      - name: Initialize Packer
+        run: packer init kafka.pkr.hcl
+
+      - name: Validate Packer Template
+        env:
+          AWS_ACCESS_KEY_ID: dummy-access-key
+          AWS_SECRET_ACCESS_KEY: dummy-secret-key
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          packer validate \
+            -var 'region=us-east-1' \
+            kafka.pkr.hcl 

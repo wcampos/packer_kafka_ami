@@ -28,20 +28,20 @@ clean:
 # Docker testing targets
 docker-build:
 	@echo "Building Docker test environment..."
-	docker-compose build
+	docker compose build
 
 docker-test:
 	@echo "Running Ansible playbook in Docker container..."
-	docker-compose up --abort-on-container-exit
+	docker compose up --abort-on-container-exit
 
 docker-clean:
 	@echo "Cleaning up Docker resources..."
-	docker-compose down -v
-	docker-compose rm -f
+	docker compose down -v
+	docker compose rm -f
 
 docker-shell:
 	@echo "Opening shell in Docker container..."
-	docker-compose run --rm kafka-ami-test /bin/bash
+	docker compose run --rm kafka-ami-test /bin/bash
 
 help:
 	@echo "Available targets:"
